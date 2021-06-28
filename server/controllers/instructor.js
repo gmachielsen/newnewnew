@@ -1,4 +1,5 @@
 const User = require("../models/user");
+const Course = require("../models/course");
 const queryString = require("query-string");
 const stripe = require("stripe")(process.env.STRIPE_SECRET);
 
@@ -69,4 +70,15 @@ exports.makeInstructor = async (req, res) => {
       } catch (err) {
           console.log(err);
       }
+  }
+
+  exports.instructorCourses = async (req, res) => {
+    try {
+      const courses = await Course.find({ instructor: req.user._id })
+        .sort({ createdAt: -1 })
+        .exec();
+      res.json(courses);
+    } catch (err) {
+      console.log(err);
+    }
   }

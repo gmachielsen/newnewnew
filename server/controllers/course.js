@@ -1,7 +1,7 @@
-import AWS from "aws-sdk";
-import { nanoid } from "nanoid";
-import Course from "../models/course";
-import slugify from "slugify";
+const AWS = require("aws-sdk");
+const { nanoid } = require("nanoid");
+const Course = require("../models/course");
+const slugify = require("slugify");
 
 const awsConfig = {
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,

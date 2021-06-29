@@ -12,7 +12,7 @@ const awsConfig = {
 
 const S3 = new AWS.S3(awsConfig);
 
-export const uploadImage = async (req, res) => {
+exports.uploadImage = async (req, res) => {
   // console.log(req.body);
   try {
     const { image } = req.body;
@@ -50,7 +50,7 @@ export const uploadImage = async (req, res) => {
   }
 };
 
-export const removeImage = async (req, res) => {
+exports.removeImage = async (req, res) => {
   try {
     const { image } = req.body;
     // image params
@@ -72,7 +72,7 @@ export const removeImage = async (req, res) => {
   }
 };
 
-export const create = async (req, res) => {
+exports.create = async (req, res) => {
     // console.log("CREATE COURSE", req.body);
     try {
         const alreadyExist = await Course.findOne({
@@ -92,3 +92,14 @@ export const create = async (req, res) => {
         return res.status(400).send("Course create failed. Try again");
     }
 };
+
+exports.read = async (req, res) => {
+  try {
+    const course = await Course.findOne({ slug: req.params.slug })
+     .populate("instructor", "_id name")
+     .exec();
+    res.json(course);
+  } catch (err) {
+    console.log(err);
+  }
+}

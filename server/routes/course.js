@@ -1,5 +1,5 @@
-
 const express = require("express");
+const formidable = require("express-formidable");
 
 const router = express.Router();
 
@@ -7,7 +7,7 @@ const router = express.Router();
 const { requireSignin, isInstructor } = require("../middlewares");
 
 // controllers
-const { uploadImage, removeImage, create, read } = require("../controllers/course");
+const { uploadImage, removeImage, create, read, uploadVideo, removeVideo } = require("../controllers/course");
 
 // image
 router.post("/course/upload-image", uploadImage);
@@ -15,5 +15,7 @@ router.post("/course/remove-image", removeImage);
 // course 
 router.post("/course", requireSignin, isInstructor, create);
 router.get("/course/:slug", read);
+router.post("/course/video-upload", requireSignin, formidable(), uploadVideo);
+router.post("/course/video-remove", requireSignin, removeVideo);
 
 module.exports = router;

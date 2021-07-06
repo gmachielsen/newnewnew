@@ -107,6 +107,13 @@ exports.read = async (req, res) => {
 
 exports.uploadVideo = async (req, res) => {
   try {
+    // console.log("req.user._id", req.user._id);
+    // console.log("req.params.instructorId", req.params.instructorId);
+
+    if (req.user._id != req.params.instructorId) {
+      return res.status(400).send("Unauthorized");
+    }
+
     const { video } = req.files;
     console.log(video);
     if (!video) return res.status(400).send("No video");
@@ -137,6 +144,11 @@ exports.uploadVideo = async (req, res) => {
 
 exports.removeVideo = async (req, res) => {
   try {
+
+    if (req.user._id != req.params.instructorId) {
+      return res.status(400).send("Unauthorized");
+    }
+
     const { Bucket, Key } = req.body;
     // console.log(video);
     // return;
@@ -159,5 +171,54 @@ exports.removeVideo = async (req, res) => {
     });
   } catch (err) {
     console.log(err);
+  }
+};
+
+
+exports.addLesson = async (req, res) => {
+  try {
+    const {slug, instructorId} = req.params;
+    const {title, content, video} = req.body;
+
+    if(req.user._id != instructorId) {
+      return res.status(400).send("Unauthorized");
+    } 
+
+    const updated = await Course.findOneAndUpdate(
+      { slug },
+      {
+        $push: { lessons: { title, content, video, slug: slugify(title)}},
+      },
+      { new: true }
+    )
+      .populate("instructor", "_id name")
+      .exec();
+    res.json(updated);
+  } catch (err) {
+    console.log(err);
+    return res.status(400).send("Add lesson failed");
+  }
+};
+
+
+exports.update = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const course = await Course.findOne({ slug }).exec();
+    console.log("COURSE FOUND => ", course);
+  
+    if (req.user._id != course.instructor) {
+      return res.status(400).send("Unauthorized");
+    }
+  
+    const updated = await Course.findOneAndUpdate({slug}, req.body, {
+      new: true,
+    }).exec();
+  
+    res.json(updated);
+  } catch (err) {
+    console.log(err);
+    return res.status(400).send(err.message);
   }
 };

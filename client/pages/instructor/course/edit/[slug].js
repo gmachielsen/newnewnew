@@ -151,7 +151,7 @@ const CourseEdit = () => {
    * lesson update functions
    */
 
-  const handleVideo = () => {
+  const handleVideo = async () => {
     // remove privious video
     if(current.video && current.video.Location) {
       const res = await axios.post(`/api/course/video-remove/${values.instructor._id}`, 
@@ -190,8 +190,14 @@ const CourseEdit = () => {
     );
     setUploadVideoButtonText("Upload Video")
     setVisible(false)
-    toast('Lesson updated');
-    setCourse(data);
+    // update ui 
+    if(data.ok) {
+      let arr = values.lessons;
+      const index = arr.findIndex((el) => el._id === current._id);
+      arr[index] = current;
+      setValues({ ...values, lessons: arr });
+      toast('Lesson updated');
+    }
   };
 
   return (

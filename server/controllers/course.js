@@ -268,3 +268,46 @@ exports.updateLesson = async (req, res) => {
     return res.status(400).send("Update lesson failed");
   }
 };
+
+
+exports.publishCourse = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const course = await Course.findById(courseId).select("instructor");
+
+    if (course.instructor._id != req.user._id) {
+      return res.status(400).send("Unauthorized");
+    }
+
+    const updated = await Course.findByIdAndUpdate(
+      courseId,
+        { published: true },
+        { new: true }
+      ).exec();
+      res.json(updated); 
+  } catch (err) {
+    console.log(err);
+    return res.status(400).send("Publish course failed");
+  }
+}
+
+exports.unpublishCourse = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const course = await Course.findById(courseId).select("instructor");
+
+    if (course.instructor._id != req.user._id) {
+      return res.status(400).send("Unauthorized");
+    }
+
+    const updated = await Course.findByIdAndUpdate(
+      courseId,
+        { published: false },
+        { new: true }
+      ).exec();
+      res.json(updated); 
+  } catch (err) {
+    console.log(err);
+    return res.status(400).send("Unpublish course failed");
+  }
+}

@@ -56,14 +56,13 @@ const UpdateLessonForm = ({
             steps={10}
           />
         )}
-
         <div className="d-flex justify-content-between">
-          {/* <span className="pt-3 badge"><p>Preview</p></span> */}
+          <span className="pt-3 badge"><p>Preview</p></span>
           <p>Preview</p>
           <Switch 
             className="float-right mt-2" 
             disabled={uploading} 
-            defaultChecked={current.free_preview}
+            checked={current.free_preview}
             name="fee_preview"
             onChange={(v) => setCurrent({ ...current, free_preview: v })} 
           />

@@ -151,7 +151,7 @@ const CourseEdit = () => {
    * lesson update functions
    */
 
-  const handleVideo = async () => {
+  const handleVideo = async (e) => {
     // remove privious video
     if(current.video && current.video.Location) {
       const res = await axios.post(`/api/course/video-remove/${values.instructor._id}`, 

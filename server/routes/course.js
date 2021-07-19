@@ -7,8 +7,10 @@ const router = express.Router();
 const { requireSignin, isInstructor } = require("../middlewares");
 
 // controllers
-const { uploadImage, removeImage, create, read, uploadVideo, removeVideo, addLesson, update, removeLesson, updateLesson, publishCourse, unpublishCourse } = require("../controllers/course");
+const { uploadImage, removeImage, create, read, uploadVideo, removeVideo, addLesson, update, removeLesson, updateLesson, publishCourse, unpublishCourse, courses, checkEnrollment, freeEnrollment, paidEnrollment } = require("../controllers/course");
 
+
+router.get("/courses", courses);
 // image
 router.post("/course/upload-image", uploadImage);
 router.post("/course/remove-image", removeImage);
@@ -27,7 +29,10 @@ router.post("/course/lesson/:slug/:instructorId", requireSignin, addLesson);
 router.put("/course/lesson/:slug/:instructorId", requireSignin, updateLesson);
 router.put("/course/:slug/:lessonId", requireSignin, removeLesson);
 
+router.get('/check-enrollment/:courseId', requireSignin, checkEnrollment);
 
-
+// enrollment
+router.post("/free-enrollment/:courseId", requireSignin, freeEnrollment);
+router.post("/paid-enrollment/:courseId", requireSignin, paidEnrollment);
 
 module.exports = router;

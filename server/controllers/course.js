@@ -1,8 +1,9 @@
 const AWS = require("aws-sdk");
 const { nanoid } = require("nanoid");
 const Course = require("../models/course");
+const User = require("../models/user");
 const slugify = require("slugify");
-const {readFileSync} = require("fs"); // rs.readFileSync
+const { readFileSync } = require("fs"); // rs.readFileSync
 
 const awsConfig = {
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -95,6 +96,7 @@ exports.create = async (req, res) => {
 };
 
 exports.read = async (req, res) => {
+  console.log("single course read", req.params.slug);
   try {
     const course = await Course.findOne({ slug: req.params.slug })
      .populate("instructor", "_id name")
@@ -311,3 +313,57 @@ exports.unpublishCourse = async (req, res) => {
     return res.status(400).send("Unpublish course failed");
   }
 }
+
+
+exports.courses = async (req, res) => {
+  const all = await Course.find({ published: true })
+    .populate("instructor", "_id name")
+    .exec();
+  res.json(all);
+};
+
+
+exports.checkEnrollment = async (req, res) => {
+  const { courseId } = req.params;
+  // find courses of the currently logged in user
+  const user = await User.findById(req.user._id).exec();
+  // check if course id is found in user courses array
+  let ids = [];
+  let length = user.courses && user.courses.length;
+  for (let i = 0; i < length; i++) {
+    ids.push(user.courses[i].toString());
+  }
+  res.json({
+    status: ids.includes(courseId),
+    course: await Course.findById(courseId).exec(),
+  });
+};
+
+
+exports.freeEnrollment = async (req, res) => {
+  try {
+    // check if course is free or paid
+    const course = await Course.findById(req.params.courseId).exec();
+    if(course.paid) return;
+
+    const result = await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        $addToSet: { courses: course._id },
+      },
+      { new: true }
+    ).exec();
+    res.json({
+      message: "Congratulations! You have successfully enrolled", 
+      course,
+    });
+  } catch (err) {
+    console.log('free enrollment err', err);
+    return res.status(400).send('Enrollment create failed');
+  }
+}
+
+
+exports.paidEnrollment = async (req, res) => {
+  //
+};

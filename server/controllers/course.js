@@ -4,6 +4,7 @@ const Course = require("../models/course");
 const User = require("../models/user");
 const slugify = require("slugify");
 const { readFileSync } = require("fs"); // rs.readFileSync
+const stripe = require("stripe")(process.env.STRIPE_SECRET);
 
 const awsConfig = {
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -365,5 +366,45 @@ exports.freeEnrollment = async (req, res) => {
 
 
 exports.paidEnrollment = async (req, res) => {
-  //
+  try {
+    // check if course is free or paid
+    const course = await Course.findById(req.params.courseId)
+      .populate("instructor")
+      .exec();
+    if (!course.paid) return;
+    // application fee 30%
+    const fee = (course.price * 30) / 100;
+    // create stripe session
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      // purchase details
+      line_items: [
+        {
+          name: course.name,
+          amount: Math.round(course.price.toFixed(2) * 100),
+          currency: "usd",
+          quantity: 1,
+        },
+      ],
+      // charge buyer and transfer remaining balance to seller (after fee)
+      payment_intent_data: {
+        application_fee_amount: Math.round(fee.toFixed(2) * 100),
+        transfer_data: {
+          destination: course.instructor.stripe_account_id,
+        },
+      },
+      // redirect url after successful payment
+      success_url: `${process.env.STRIPE_SUCCESS_URL}/${course._id}`,
+      cancel_url: process.env.STRIPE_CANCEL_URL,
+    });
+    console.log("SESSION ID => ", session);
+
+    await User.findByIdAndUpdate(req.user._id, {
+      stripeSession: session,
+    }).exec();
+    res.send(session.id);
+  } catch (err) {
+    console.log("PAID ENROLLMENT ERR", err);
+    return res.status(400).send("Enrollment create failed");
+  }
 };

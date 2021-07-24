@@ -8,6 +8,11 @@ const { requireSignin } = require("../middlewares");
 // controllers
 const { register, login, logout, currentUser, forgotPassword, sendTestEmail, resetPassword } = require("../controllers/auth");
 
+///dddd
+const {sendRegisterEmail} = require("../controllers/auth");
+///dddd
+
+router.post("/reg", sendRegisterEmail);
 router.post("/register", register);
 router.post("/login", login);
 router.get("/logout", logout);

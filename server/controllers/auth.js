@@ -15,6 +15,47 @@ const awsConfig = {
 
 const SES = new AWS.SES(awsConfig);
 
+exports.sendRegisterEmail = async (req, res) => {
+      // send verifcation email 
+  const { email } = req.body;
+
+  try {
+    const params = {
+      Source: process.env.EMAIL_FROM,
+      Destination: {
+        ToAddresses: [email],
+      },
+      ReplyToAddresses: [process.env.EMAIL_FROM],
+      Message: {
+        Body: {
+          Html: {
+            Charset: "UTF-8",
+            Data: `
+            <html>
+                <h1>Verify email</h1>
+                <p>Please use the following link to verify your email</p>
+            </html>
+            `,
+          },
+        },
+        Subject: {
+          Charset: "UTF-8",
+          Data: "Email verification link",
+        },
+      },
+    };
+
+    const emailSent = SES.sendEmail(params).promise();
+  
+    emailSent.then((data) => {
+      console.log(data);
+      res.json({ ok: true });
+    })
+  } catch (err) {
+    console.log(err);
+  }
+}
+
 exports.register = async (req, res) => {
   try {
     // console.log(req.body);
@@ -41,6 +82,39 @@ exports.register = async (req, res) => {
     await user.save();
     // console.log("saved user", user);
     return res.json({ ok: true });
+
+    // send verifcation email 
+    // const params = {
+    //   Source: process.env.EMAIL_FROM,
+    //   Destination: {
+    //     ToAddresses: [email],
+    //   },
+    //   ReplyToAddresses: [process.env.EMAIL_FROM],
+    //   Message: {
+    //     Body: {
+    //       Html: {
+    //         Charset: "UTF-8",
+    //         Data: `
+    //         <html>
+    //             <h1>Verify email</h1>
+    //             <p>Please use the following link to verify your email</p>
+    //         </html>
+    //         `,
+    //       },
+    //     },
+    //     Subject: {
+    //       Charset: "UTF-8",
+    //       Data: "Email verification link",
+    //     },
+    //   },
+    // };
+  
+    // const emailSent = SES.sendEmail(params).promise();
+  
+    // emailSent.then((data) => {
+    //   console.log(data);
+    //   res.json({ ok: true });
+    // })
 
     // send verification email 
     // const params = {

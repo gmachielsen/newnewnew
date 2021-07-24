@@ -1,6 +1,7 @@
 const AWS = require("aws-sdk");
 const { nanoid } = require("nanoid");
 const Course = require("../models/course");
+const Completed = require("../models/completed");
 const User = require("../models/user");
 const slugify = require("slugify");
 const { readFileSync } = require("fs"); // rs.readFileSync
@@ -444,4 +445,34 @@ exports.userCourses = async (req, res) => {
     .populate("instructor", "_id name")
     .exec();
   res.json(courses);
+};
+
+
+exports.markCompleted = async (req, res) => {
+  const { courseId, lessonId } = req.body;
+  // console.log(courseId, lessonId);
+  // find if user with that course is already created 
+  const existing = await Completed.findOne({
+    user: req.user._id,
+    course: courseId,
+  }).exec();
+
+  if (existing) {
+    const updated = await Completed.findOneAndUpdate({
+      user: req.user._id,
+      course: courseId,
+    },
+    {
+      $addToSet: { lessons: lessonId },
+    }).exec();
+    res.json({ ok: true });
+  } else {
+    // create 
+    const created = await new Completed({
+      user: req.user._id,
+      course: courseId,
+      lessons: lessonId,
+    }).save();
+    res.json({ ok: true });
+  }
 };
